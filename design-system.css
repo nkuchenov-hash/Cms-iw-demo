@@ -127,20 +127,29 @@ html, body {
 .hero-setup-link,
 .profile-card { min-height: 58px !important; padding: 10px !important; }
 .topbar { min-height: 64px !important; height: 64px !important; }
-.view { padding: 20px 24px 48px !important; max-width: none !important; width: 100% !important; margin: 0 !important; }
+.view { padding: 12px 24px 48px !important; max-width: none !important; width: 100% !important; margin: 0 !important; }
 .main { width: 100% !important; min-width: 0 !important; }
 
+/* Route identity already lives in the persistent breadcrumb/navigation.
+   Do not spend vertical space repeating the route name and description inside the view. */
 .page-head {
+  min-height: 0 !important;
+  margin: 0 0 8px !important;
+  padding: 0 !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
   align-items: center !important;
-  margin-bottom: 14px !important;
-  gap: 16px !important;
 }
-.page-head p {
-  margin-top: 4px !important;
-  line-height: 1.35 !important;
-  max-width: 760px !important;
-}
-.page-meta { gap: 6px !important; }
+.page-head > div:first-child { display: none !important; }
+.page-head:not(:has(.page-meta)) { display: none !important; }
+.page-meta { gap: 6px !important; margin-left: auto !important; }
+
+/* Calendar and Knowledge Base use custom route headers rather than .page-head. */
+.calendar-v6-title h1,
+.kb-compact-head h1 { display: none !important; }
+.calendar-v6-title { padding-right: 0 !important; }
+.kb-compact-head { margin: 0 0 8px !important; min-height: 0 !important; }
+.kb-compact-head > div > span { margin-top: 0 !important; }
 
 .v3-filterbar,
 .toolbar { gap: 8px !important; }
@@ -177,7 +186,6 @@ html, body {
 .hero-card p,
 .settings-card-v3 p,
 .panel-head p,
-.page-head p,
 small { line-height: var(--ds-line-body) !important; }
 
 /* Filter chips are the buttons themselves. Never draw a tag inside a second square button. */
@@ -231,7 +239,7 @@ small { line-height: var(--ds-line-body) !important; }
   .app-shell { grid-template-columns: 60px minmax(0,1fr) !important; }
   .sidebar { display: none !important; }
   .topbar { padding-inline: 14px !important; }
-  .view { padding: 18px 14px 42px !important; }
+  .view { padding: 10px 14px 42px !important; }
   .v3-kpis,.metric-grid,.dashboard-widget-grid,.hero-grid,.settings-grid-v3 { grid-template-columns: 1fr !important; }
   .publication-main,.publisher-row { grid-template-columns: 1fr !important; }
   .publication-output { border-left: 0 !important; border-top: 1px solid var(--ds-color-line) !important; }
