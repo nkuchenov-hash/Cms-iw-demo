@@ -1,6 +1,6 @@
 const kq=(s,r=document)=>r.querySelector(s),kqa=(s,r=document)=>[...r.querySelectorAll(s)];
 const ke=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let KB=null,kbGroup='all',kbTopic='all',kbSearch='';
+let KB=null,kbTab='sources',kbGroup='all',kbTopic='all',kbSearch='';
 const kbRoute=()=>location.hash.replace('#/','')||'dashboard';
 const kbKinds={fact:'Fact',guide:'Guide',docs_section:'Docs section',comparison:'Comparison',community:'Community',idea:'Idea',watch:'Watch'};
 const kbFormats={post:'Post',image_post:'Image post',short:'Short',reel:'Reel',long_video:'Long video'};
@@ -27,42 +27,40 @@ function kbItemMatches(item){
 function kbItems(){return (KB?.knowledgeItems||[]).filter(kbItemMatches)}
 function kbItemCountForTopic(id){const ids=new Set(kbDescendants(id));return (KB?.knowledgeItems||[]).filter(item=>item.status!=='archived'&&item.topicIds?.some(t=>ids.has(t))).length}
 function kbContentCountForTopic(id,status=null){const ids=new Set(kbDescendants(id));return (KB?.content||[]).filter(c=>ids.has(c.topicId)&&(!status||c.status===status)).length}
-function kbUsedItemIds(){const ids=new Set();for(const c of KB?.content||[])for(const id of c.metadata?.knowledgeItemIds||[])ids.add(id);return ids}
 function kbSourceItemCount(sourceId){return (KB?.knowledgeItems||[]).filter(x=>x.sourceId===sourceId&&x.status!=='archived').length}
 function kbSourceGroupItems(groupId){const ids=new Set((KB?.sources||[]).filter(s=>(s.sourceGroup||'manual')===groupId).map(s=>s.id));return (KB?.knowledgeItems||[]).filter(i=>ids.has(i.sourceId)&&i.status!=='archived').length}
 function kbTopicOptions(selected=''){return (KB?.topics||[]).map(t=>`<option value="${ke(t.id)}" ${t.id===selected?'selected':''}>${ke(t.name)}</option>`).join('')}
-
-function kbEnsureNav(){
-  kqa('.rail-btn[data-route="topics"],.rail-btn[data-route="references"]').forEach(x=>x.remove());
-  const side=kq('#sideNav');
-  if(side&&!side.querySelector('[data-route="knowledge"]')){
-    const b=document.createElement('button');b.className=`side-link ${kbRoute()==='knowledge'?'active':''}`;b.dataset.route='knowledge';b.innerHTML='<span class="nav-icon">◇</span><span>Knowledge Base</span>';
-    b.onclick=()=>{location.hash='#/knowledge'};side.append(b);
-  }
-}
+function kbUsedItemIds(){const ids=new Set();for(const c of KB?.content||[])for(const id of c.metadata?.knowledgeItemIds||[])ids.add(id);return ids}
 
 function kbSourceBlocks(){
   return (KB?.sourceGroups||[]).map(group=>{
     const sources=(KB.sources||[]).filter(s=>(s.sourceGroup||'manual')===group.id&&s.enabled!==false);
     const count=kbSourceGroupItems(group.id);
-    return `<article class="kb-source-block ${kbGroup===group.id?'active':''}" data-kb-group="${ke(group.id)}">
-      <div class="kb-source-block-head"><div><span class="source-class">${ke(group.id)}</span><h2>${ke(group.name)}</h2></div><span class="pill">${count} items</span></div>
-      <p>${ke(group.description)}</p>
-      <div class="kb-source-list">${sources.length?sources.map(source=>`<div class="kb-source-entry"><b>${ke(source.name)}</b><small>${kbSourceItemCount(source.id)} knowledge items · ${ke(source.kind||'source')}</small>${source.url?`<a href="${ke(source.url)}" target="_blank" rel="noopener" data-kb-source-link>Open source ↗</a>`:''}</div>`).join(''):'<div class="kb-source-entry"><span>No source connected yet.</span></div>'}</div>
-    </article>`;
+    return `<article class="kb-source-block"><div class="kb-source-block-head"><div><span class="source-class">${ke(group.id)}</span><h2>${ke(group.name)}</h2></div><span class="pill">${sources.length} sources · ${count} items</span></div><p>${ke(group.description)}</p><div class="kb-source-list">${sources.length?sources.map(source=>`<div class="kb-source-entry"><div><b>${ke(source.name)}</b><small>${ke(source.kind||'source')} · ${kbSourceItemCount(source.id)} knowledge items</small></div>${source.url?`<a href="${ke(source.url)}" target="_blank" rel="noopener">Open ↗</a>`:'<span class="meta-chip">manual</span>'}</div>`).join(''):'<div class="kb-source-entry"><span>No source connected yet.</span></div>'}</div></article>`;
   }).join('');
 }
 
-function kbTopicTreeNode(topic){
-  const children=kbChildren(topic.id),knowledge=kbItemCountForTopic(topic.id),published=kbContentCountForTopic(topic.id,'published'),total=kbContentCountForTopic(topic.id);
-  return `<div class="kb-topic"><div class="kb-topic-row ${kbTopic===topic.id?'active':''}" data-kb-topic="${ke(topic.id)}"><div class="kb-topic-copy"><b>${ke(topic.name)}</b><span>${knowledge} knowledge · ${published} published · ${Math.max(0,total-published)} planned/in progress</span></div><div class="kb-topic-actions"><span class="pill">${knowledge}</span><button class="secondary-btn" data-kb-content-topic="${ke(topic.id)}">Create content</button></div></div>${children.length?`<div class="kb-topic-children">${children.map(kbTopicTreeNode).join('')}</div>`:''}</div>`;
+function kbInfoTreeNode(topic){
+  const children=kbChildren(topic.id),knowledge=kbItemCountForTopic(topic.id);
+  return `<div class="kb-topic"><div class="kb-topic-row ${kbTopic===topic.id?'active':''}" data-kb-topic="${ke(topic.id)}"><div class="kb-topic-copy"><b>${ke(topic.name)}</b><span>${knowledge} knowledge items</span></div><span class="pill">${knowledge}</span></div>${children.length?`<div class="kb-topic-children">${children.map(kbInfoTreeNode).join('')}</div>`:''}</div>`;
 }
 function kbTopicTree(){
-  const groups=KB?.topicGroups||[];
-  return groups.map(group=>{
+  return (KB?.topicGroups||[]).map(group=>{
     const roots=(KB.topics||[]).filter(t=>t.groupId===group.id&&!t.parentTopicId);
     if(!roots.length)return '';
-    return `<section class="kb-tree-group"><div class="kb-tree-group-title"><b>${ke(group.name)}</b></div>${roots.map(kbTopicTreeNode).join('')}</section>`;
+    return `<section class="kb-tree-group"><div class="kb-tree-group-title"><b>${ke(group.name)}</b></div>${roots.map(kbInfoTreeNode).join('')}</section>`;
+  }).join('');
+}
+
+function kbPostingTreeNode(topic){
+  const children=kbChildren(topic.id),published=kbContentCountForTopic(topic.id,'published'),total=kbContentCountForTopic(topic.id),planned=Math.max(0,total-published);
+  return `<div class="kb-topic kb-posting-topic"><div class="kb-posting-row"><div class="kb-topic-copy"><b>${ke(topic.name)}</b><span>${published} published · ${planned} planned / in progress</span></div><div class="kb-topic-actions"><span class="pill">${published}/${total}</span><button class="secondary-btn" data-kb-content-topic="${ke(topic.id)}">Create content</button></div></div>${children.length?`<div class="kb-topic-children">${children.map(kbPostingTreeNode).join('')}</div>`:''}</div>`;
+}
+function kbPostingTree(){
+  return (KB?.topicGroups||[]).map(group=>{
+    const roots=(KB.topics||[]).filter(t=>t.groupId===group.id&&!t.parentTopicId);
+    if(!roots.length)return '';
+    return `<section class="kb-tree-group"><div class="kb-tree-group-title"><b>${ke(group.name)}</b><span>${roots.reduce((n,t)=>n+kbContentCountForTopic(t.id),0)} content records</span></div>${roots.map(kbPostingTreeNode).join('')}</section>`;
   }).join('');
 }
 
@@ -81,28 +79,30 @@ function kbDialogs(){
   <dialog id="kbContentDialog" class="kb-dialog"><form class="kb-dialog-form" data-kb-content-form><div class="kb-dialog-head"><h2>Create content idea</h2><button type="button" class="icon-action" data-kb-close="kbContentDialog" aria-label="Close">×</button></div><div class="kb-lineage" data-kb-lineage>Content will keep a traceable link to the selected topic and knowledge source.</div><input type="hidden" name="knowledgeItemId"><label class="kb-field"><span>Format</span><select name="type">${Object.entries(kbFormats).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select></label><label class="kb-field"><span>Topic</span><select name="topicId">${kbTopicOptions()}</select></label><label class="kb-field"><span>Title</span><input name="title" required></label><label class="kb-field"><span>Starting note</span><textarea name="body"></textarea></label><div class="kb-dialog-actions"><button type="button" class="secondary-btn" data-kb-close="kbContentDialog">Cancel</button><button class="primary-btn" type="submit">Create idea</button></div></form></dialog>`;
 }
 
+function kbTabBody(){
+  if(kbTab==='sources')return `<section class="kb-tab-panel"><div class="kb-section-head"><div><h2>Information sources</h2><p>The source database: product site, docs, Telegram, YouTube, team input, competitors and market watchlists.</p></div><button class="primary-btn" data-kb-add-source>Add source</button></div><div class="kb-source-grid">${kbSourceBlocks()}</div></section>`;
+  if(kbTab==='structure')return `<section class="kb-tab-panel"><div class="kb-section-head"><div><h2>Information structure</h2><p>The resulting knowledge tree and the facts, guides, comparisons and ideas attached to it.</p></div><button class="primary-btn" data-kb-add-item>Add knowledge / idea</button></div><div class="kb-filterbar"><input data-kb-search value="${ke(kbSearch)}" placeholder="Search knowledge"><select data-kb-group-filter><option value="all">All source blocks</option>${KB.sourceGroups.map(g=>`<option value="${ke(g.id)}" ${kbGroup===g.id?'selected':''}>${ke(g.name)}</option>`).join('')}</select><select data-kb-topic-filter><option value="all">All topics</option>${kbTopicOptions(kbTopic==='all'?'':kbTopic)}</select></div><div class="kb-workspace"><section class="kb-panel"><div class="kb-panel-head"><div><h2>Topic tree</h2><p>Structured result of collected knowledge.</p></div><span class="pill">${KB.topics.length} topics</span></div><div class="kb-tree">${kbTopicTree()}</div></section><section class="kb-panel"><div class="kb-panel-head"><div><h2>Knowledge records</h2><p>${kbItems().length} items match the current filters.</p></div></div><div class="kb-items">${kbKnowledgeRows()}</div></section></div></section>`;
+  return `<section class="kb-tab-panel"><div class="kb-section-head"><div><h2>Posting topics</h2><p>The editorial topic structure for future posts, shorts and videos, with current publication coverage.</p></div></div><div class="kb-panel"><div class="kb-panel-head"><div><h2>Editorial topic tree</h2><p>Choose a theme and create the next content record directly from it.</p></div><span class="pill accent">${KB.content.length} content records</span></div><div class="kb-tree kb-posting-tree">${kbPostingTree()}</div></div></section>`;
+}
+
 function kbRender(){
-  if(!KB||kbRoute()!=='knowledge')return;kbEnsureNav();const view=kq('#view');if(!view)return;
-  const leaves=(KB.topics||[]).filter(t=>!kbChildren(t.id).length),covered=leaves.filter(t=>kbItemCountForTopic(t.id)>0).length,uncovered=leaves.filter(t=>kbItemCountForTopic(t.id)>0&&kbContentCountForTopic(t.id)===0).length;
+  if(!KB||kbRoute()!=='knowledge')return;const view=kq('#view');if(!view)return;
+  const leaves=(KB.topics||[]).filter(t=>!kbChildren(t.id).length),covered=leaves.filter(t=>kbItemCountForTopic(t.id)>0).length;
   kq('#pageCrumb').textContent='Knowledge Base';
-  view.innerHTML=`<div class="kb-page"><div class="page-head"><div><h1>Knowledge Base</h1><p>Source intelligence → themes → subthemes → traceable content ideas for IntraWeb 17.</p></div><div class="kb-actions"><button class="secondary-btn" data-kb-add-source>Add source</button><button class="primary-btn" data-kb-add-item>Add knowledge / idea</button></div></div>
-  <div class="kb-metrics"><div class="kb-metric"><span>Knowledge items</span><b>${KB.knowledgeItems.length}</b></div><div class="kb-metric"><span>Sources</span><b>${KB.sources.filter(s=>s.enabled!==false).length}</b></div><div class="kb-metric"><span>Leaf topics with knowledge</span><b>${covered} / ${leaves.length}</b></div><div class="kb-metric"><span>Knowledge-rich topics with no content</span><b>${uncovered}</b></div></div>
-  <section><div class="kb-source-grid">${kbSourceBlocks()}</div></section>
-  <div class="kb-filterbar"><input data-kb-search value="${ke(kbSearch)}" placeholder="Search knowledge, facts, ideas or source sections"><select data-kb-group-filter><option value="all">All source blocks</option>${KB.sourceGroups.map(g=>`<option value="${ke(g.id)}" ${kbGroup===g.id?'selected':''}>${ke(g.name)}</option>`).join('')}</select><select data-kb-topic-filter><option value="all">All topics</option>${kbTopicOptions(kbTopic==='all'?'':kbTopic)}</select></div>
-  <div class="kb-workspace"><section class="kb-panel"><div class="kb-panel-head"><div><h2>Topic tree</h2><p>Shared taxonomy used by Knowledge Base, content and analytics.</p></div><span class="pill">${KB.topics.length} topics</span></div><div class="kb-tree">${kbTopicTree()}</div></section><section class="kb-panel"><div class="kb-panel-head"><div><h2>Knowledge</h2><p>${kbItems().length} items match the current source/topic filters.</p></div><span class="pill accent">traceable sources</span></div><div class="kb-items">${kbKnowledgeRows()}</div></section></div>${kbDialogs()}</div>`;
-  kbBind();
+  view.innerHTML=`<div class="kb-page"><div class="kb-compact-head"><div><h1>Knowledge Base</h1><span>${KB.sources.filter(s=>s.enabled!==false).length} sources · ${KB.knowledgeItems.length} knowledge items · ${covered}/${leaves.length} leaf topics covered</span></div></div><nav class="kb-tabs" aria-label="Knowledge Base sections"><button data-kb-tab="sources" class="${kbTab==='sources'?'active':''}">Information sources</button><button data-kb-tab="structure" class="${kbTab==='structure'?'active':''}">Information structure</button><button data-kb-tab="posting" class="${kbTab==='posting'?'active':''}">Posting topics</button></nav>${kbTabBody()}${kbDialogs()}</div>`;
+  view.dataset.routeOwner='knowledge-base';view.dataset.route='knowledge';kbBind();
 }
 
 function kbOpenContent({itemId='',topicId=''}){
   const d=kq('#kbContentDialog'),f=kq('[data-kb-content-form]'),item=itemId?KB.knowledgeItems.find(x=>x.id===itemId):null;
   f.reset();f.elements.knowledgeItemId.value=item?.id||'';f.elements.topicId.value=topicId||item?.topicIds?.[0]||KB.topics[0]?.id||'';f.elements.title.value=item?.kind==='idea'?item.title.replace(/^Content idea:\s*/i,''):item?.title||'';f.elements.body.value=item?.summary||'';
-  kq('[data-kb-lineage]').textContent=item?`Lineage: ${kbSource(item.sourceId)?.name||'source'} → ${(item.topicIds||[]).map(id=>kbTopicById(id)?.name).filter(Boolean).join(' / ')||'topic'} → content record.`:'This content idea will be linked to the selected Knowledge Base topic.';
+  kq('[data-kb-lineage]').textContent=item?`Lineage: ${kbSource(item.sourceId)?.name||'source'} → ${(item.topicIds||[]).map(id=>kbTopicById(id)?.name).filter(Boolean).join(' / ')||'topic'} → content record.`:'This content idea will be linked to the selected posting topic.';
   d.showModal();
 }
 
 function kbBind(){
-  kqa('[data-kb-group]').forEach(el=>el.onclick=e=>{if(e.target.closest('[data-kb-source-link]'))return;kbGroup=kbGroup===el.dataset.kbGroup?'all':el.dataset.kbGroup;kbRender()});
-  kqa('[data-kb-topic]').forEach(el=>el.onclick=e=>{if(e.target.closest('[data-kb-content-topic]'))return;kbTopic=kbTopic===el.dataset.kbTopic?'all':el.dataset.kbTopic;kbRender()});
+  kqa('[data-kb-tab]').forEach(b=>b.onclick=()=>{kbTab=b.dataset.kbTab;kbTopic='all';kbRender()});
+  kqa('[data-kb-topic]').forEach(el=>el.onclick=()=>{kbTopic=kbTopic===el.dataset.kbTopic?'all':el.dataset.kbTopic;kbRender()});
   kqa('[data-kb-content-topic]').forEach(b=>b.onclick=e=>{e.stopPropagation();kbOpenContent({topicId:b.dataset.kbContentTopic})});
   kqa('[data-kb-content-item]').forEach(b=>b.onclick=()=>kbOpenContent({itemId:b.dataset.kbContentItem}));
   kq('[data-kb-search]')?.addEventListener('input',e=>{kbSearch=e.target.value;clearTimeout(window.__kbSearchTimer);window.__kbSearchTimer=setTimeout(kbRender,120)});
@@ -111,13 +111,12 @@ function kbBind(){
   kq('[data-kb-add-source]')?.addEventListener('click',()=>kq('#kbSourceDialog').showModal());
   kq('[data-kb-add-item]')?.addEventListener('click',()=>kq('#kbItemDialog').showModal());
   kqa('[data-kb-close]').forEach(b=>b.onclick=()=>kq(`#${b.dataset.kbClose}`)?.close());
-  kq('[data-kb-source-form]')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,o=Object.fromEntries(new FormData(f));try{await kbApi('/api/knowledge-base/sources',{method:'POST',body:o});f.closest('dialog').close();await kbLoad();kbRender()}catch(err){alert(err.message)}});
-  kq('[data-kb-item-form]')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,o=Object.fromEntries(new FormData(f));o.topicIds=o.topicId?[o.topicId]:[];delete o.topicId;try{await kbApi('/api/knowledge-base/items',{method:'POST',body:o});f.closest('dialog').close();await kbLoad();kbRender()}catch(err){alert(err.message)}});
-  kq('[data-kb-content-form]')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,o=Object.fromEntries(new FormData(f)),item=o.knowledgeItemId?KB.knowledgeItems.find(x=>x.id===o.knowledgeItemId):null;const source=item?kbSource(item.sourceId):null;try{await kbApi('/api/content',{method:'POST',body:{projectId:'iw17',topicId:o.topicId,type:o.type,title:o.title,body:o.body,status:'idea',targetChannelIds:[],metadata:{knowledgeItemIds:item?[item.id]:[],sourceIds:source?[source.id]:[],knowledgeBase:true}}});f.closest('dialog').close();location.hash='#/content'}catch(err){alert(err.message)}});
+  kq('[data-kb-source-form]')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,o=Object.fromEntries(new FormData(f));try{await kbApi('/api/knowledge-base/sources',{method:'POST',body:o});f.closest('dialog').close();await kbLoad();kbRender()}catch(err){window.CMSIW?.toast?.(err.message,'bad')||alert(err.message)}});
+  kq('[data-kb-item-form]')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,o=Object.fromEntries(new FormData(f));o.topicIds=o.topicId?[o.topicId]:[];delete o.topicId;try{await kbApi('/api/knowledge-base/items',{method:'POST',body:o});f.closest('dialog').close();await kbLoad();kbRender()}catch(err){window.CMSIW?.toast?.(err.message,'bad')||alert(err.message)}});
+  kq('[data-kb-content-form]')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,o=Object.fromEntries(new FormData(f)),item=o.knowledgeItemId?KB.knowledgeItems.find(x=>x.id===o.knowledgeItemId):null,source=item?kbSource(item.sourceId):null;try{await kbApi('/api/content',{method:'POST',body:{projectId:'iw17',topicId:o.topicId,type:o.type,title:o.title,body:o.body,status:'idea',targetChannelIds:[],metadata:{knowledgeItemIds:item?[item.id]:[],sourceIds:source?[source.id]:[],knowledgeBase:true}}});f.closest('dialog').close();location.hash='#/content'}catch(err){window.CMSIW?.toast?.(err.message,'bad')||alert(err.message)}});
 }
 
-async function kbApply(){kbEnsureNav();if(kbRoute()!=='knowledge')return;try{await kbLoad();kbRender()}catch(err){const view=kq('#view');if(view)view.innerHTML=`<div class="kb-empty">Knowledge Base failed to load: ${ke(err.message)}</div>`}}
-window.addEventListener('hashchange',()=>setTimeout(kbApply,90));
-const kbObserver=new MutationObserver(()=>queueMicrotask(()=>{kbEnsureNav();if(kbRoute()==='knowledge'&&KB&&!kq('#view .kb-page'))kbRender()}));
-kbObserver.observe(document.documentElement,{subtree:true,childList:true});
-setTimeout(kbApply,140);
+async function kbApply(){if(kbRoute()!=='knowledge')return;try{await kbLoad();if(kbRoute()==='knowledge')kbRender()}catch(err){const view=kq('#view');if(view)view.innerHTML=`<div class="kb-empty">Knowledge Base failed to load: ${ke(err.message)}</div>`}}
+window.addEventListener('hashchange',()=>setTimeout(kbApply,70));
+window.addEventListener('cmsiw:state-changed',kbApply);
+setTimeout(kbApply,90);
