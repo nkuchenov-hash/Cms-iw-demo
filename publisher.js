@@ -94,20 +94,6 @@ function pubFiltered() {
   ).sort((a, b) => new Date(pubWhen(a) || '2999-12-31') - new Date(pubWhen(b) || '2999-12-31'));
 }
 
-function pubStats(jobs) {
-  const now = new Date();
-  const end7 = new Date(now);
-  end7.setDate(now.getDate() + 7);
-  const sameDay = (value, day) => value && new Date(value).toDateString() === day.toDateString();
-  return {
-    review: jobs.filter((job) => job.status === 'review').length,
-    scheduled7: jobs.filter((job) => job.status === 'scheduled' && pubWhen(job) && new Date(pubWhen(job)) <= end7 && new Date(pubWhen(job)) >= now).length,
-    today: jobs.filter((job) => ['scheduled', 'review'].includes(job.status) && sameDay(pubWhen(job), now)).length,
-    published: jobs.filter((job) => job.status === 'published').length,
-    total: jobs.length
-  };
-}
-
 function pubQueueGroups(rows) {
   const groups = new Map();
   for (const row of rows) {
@@ -175,12 +161,11 @@ function pubRender() {
   if (!view) return;
   const all = pubJobs();
   const rows = pubFiltered();
-  const stats = pubStats(all);
   if (!pubSelected || !rows.some((job) => job.id === pubSelected)) pubSelected = rows[0]?.id || null;
   const selected = rows.find((job) => job.id === pubSelected) || rows[0];
   const providerCounts = Object.fromEntries(Object.keys(pubProviders).map((provider) => [provider, all.filter((job) => job.provider === provider).length]));
 
-  view.innerHTML = `<div class="page-head"><div><h1>Publisher</h1><p>Review, preview, revise, schedule and publish destination projections backed by the shared Content Library.</p></div><div class="page-meta"><span class="pill accent">${all.length} destination jobs · ${PUB.content.length} canonical records</span></div></div><div class="publisher-v7-shell"><div class="publisher-v7-stats"><div class="publisher-v7-stat"><span>Needs review</span><b>${stats.review}</b><span>destination jobs</span></div><div class="publisher-v7-stat"><span>Scheduled · 7 days</span><b>${stats.scheduled7}</b><span>ready window</span></div><div class="publisher-v7-stat"><span>Today</span><b>${stats.today}</b><span>due today</span></div><div class="publisher-v7-stat"><span>Published</span><b>${stats.published}</b><span>destination jobs</span></div><div class="publisher-v7-stat"><span>Total queue</span><b>${stats.total}</b><span>derived, not duplicated</span></div></div><div class="publisher-v7-filters"><div class="publisher-v7-provider-tabs"><button data-pub-provider="all" class="${pubProvider === 'all' ? 'active' : ''}">All <span class="count">${all.length}</span></button>${Object.keys(pubProviders).filter((provider) => provider !== 'unknown' || providerCounts.unknown).map((provider) => `<button data-pub-provider="${pube(provider)}" class="${pubProvider === provider ? 'active' : ''}">${pubBadge(provider)} <span class="count">${providerCounts[provider] || 0}</span></button>`).join('')}</div><div class="publisher-v7-searchrow"><input id="pubSearch" value="${pube(pubSearch)}" placeholder="Search title, theme or copy…"><div class="publisher-v7-status-tabs">${[['all', 'All'], ['review', 'Needs review'], ['scheduled', 'Scheduled'], ['draft', 'Drafts'], ['idea', 'Ideas'], ['published', 'Published'], ['failed', 'Failed']].map(([status, label]) => `<button data-pub-status="${status}" class="${pubStatus === status ? 'active' : ''}">${label} <span class="count">${status === 'all' ? all.length : all.filter((job) => job.status === status).length}</span></button>`).join('')}</div></div></div>${selected ? `<div class="publisher-v7-workbench">${pubQueue(rows)}${pubCenter(selected)}${pubInspector(selected)}</div>` : '<div class="publisher-v7-empty">No canonical content matches this queue.</div>'}</div>`;
+  view.innerHTML = `<div class="publisher-v7-shell"><div class="publisher-v7-filters"><div class="publisher-v7-provider-tabs"><button data-pub-provider="all" class="${pubProvider === 'all' ? 'active' : ''}">All <span class="count">${all.length}</span></button>${Object.keys(pubProviders).filter((provider) => provider !== 'unknown' || providerCounts.unknown).map((provider) => `<button data-pub-provider="${pube(provider)}" class="${pubProvider === provider ? 'active' : ''}">${pubBadge(provider)} <span class="count">${providerCounts[provider] || 0}</span></button>`).join('')}</div><div class="publisher-v7-searchrow"><input id="pubSearch" value="${pube(pubSearch)}" placeholder="Search title, theme or copy…"><div class="publisher-v7-status-tabs">${[['all', 'All'], ['review', 'Needs review'], ['scheduled', 'Scheduled'], ['draft', 'Drafts'], ['idea', 'Ideas'], ['published', 'Published'], ['failed', 'Failed']].map(([status, label]) => `<button data-pub-status="${status}" class="${pubStatus === status ? 'active' : ''}">${label} <span class="count">${status === 'all' ? all.length : all.filter((job) => job.status === status).length}</span></button>`).join('')}</div></div></div>${selected ? `<div class="publisher-v7-workbench">${pubQueue(rows)}${pubCenter(selected)}${pubInspector(selected)}</div>` : '<div class="publisher-v7-empty">No canonical content matches this queue.</div>'}</div>`;
   view.dataset.routeOwner = 'publisher';
   view.dataset.route = 'publisher';
   pubBind();
