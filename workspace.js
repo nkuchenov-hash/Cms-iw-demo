@@ -55,12 +55,8 @@ function updateNavigation() {
   const side = wq('#sideNav');
   const rail = wq('#railNav');
   const entries = routeDefs.map(([name, icon, label]) => ({ name, icon, label, active: name === current }));
-  if (side) {
-    side.innerHTML = entries.map((entry) => `<button class="side-link ${entry.active ? 'active' : ''}" data-workspace-route="${entry.name}"><span class="nav-icon">${entry.icon}</span><span>${entry.label}</span></button>`).join('');
-  }
-  if (rail) {
-    rail.innerHTML = entries.map((entry) => `<button class="rail-btn ${entry.active ? 'active' : ''}" data-workspace-route="${entry.name}" title="${entry.label}" aria-label="${entry.label}">${entry.icon}</button>`).join('');
-  }
+  if (side) side.innerHTML = entries.map((entry) => `<button class="side-link ${entry.active ? 'active' : ''}" data-workspace-route="${entry.name}"><span class="nav-icon">${entry.icon}</span><span>${entry.label}</span></button>`).join('');
+  if (rail) rail.innerHTML = entries.map((entry) => `<button class="rail-btn ${entry.active ? 'active' : ''}" data-workspace-route="${entry.name}" title="${entry.label}" aria-label="${entry.label}">${entry.icon}</button>`).join('');
   wqa('[data-workspace-route]').forEach((button) => { button.onclick = () => go(button.dataset.workspaceRoute); });
   wq('#heroSetupLink')?.classList.toggle('active', current === 'hero');
   if (wq('#pageCrumb')) wq('#pageCrumb').textContent = routeLabels[current] || 'Dashboard';
@@ -79,19 +75,14 @@ function bindPersistentShell() {
   }
 }
 
-function itemDate(item) {
-  return item.publishedAt || item.scheduledAt || item.updatedAt || item.createdAt;
-}
-
+function itemDate(item) { return item.publishedAt || item.scheduledAt || item.updatedAt || item.createdAt; }
 function periodOk(item) {
   if (filters.period === 'all') return true;
-  const end = new Date();
-  const start = new Date(end);
+  const end = new Date(), start = new Date(end);
   start.setDate(end.getDate() - Number(filters.period));
   const when = new Date(itemDate(item));
   return when >= start && when <= end;
 }
-
 function filteredContent() {
   const query = filters.q.trim().toLowerCase();
   return (W?.content || []).filter((item) => {
@@ -104,15 +95,10 @@ function filteredContent() {
       && (!query || text.includes(query));
   });
 }
-
-function snapshots() {
-  return W?.dashboard?.analytics?.snapshots || [];
-}
-
+function snapshots() { return W?.dashboard?.analytics?.snapshots || []; }
 function output(item) {
   return snapshots().filter((snapshot) => snapshot.contentId === item.id).reduce((totals, snapshot) => {
-    const raw = snapshot.raw || {};
-    const normalized = snapshot.normalized || {};
+    const raw = snapshot.raw || {}, normalized = snapshot.normalized || {};
     totals.views += Number(normalized.views || raw.views || 0);
     totals.reach += Number(raw.reach || normalized.impressions || raw.impressions || 0);
     totals.likes += Number(raw.likes || raw.reactions || 0);
@@ -147,7 +133,6 @@ const widgetNames = {
   library: 'Content library', queue: 'Publisher queue', views: 'Views synced',
   knowledge: 'Knowledge sources', coverage: 'Theme coverage', sources: 'Source activity'
 };
-
 function renderDashboard() {
   const cards = [];
   if (widgets.has('library')) cards.push(['Content library', W.content.length, `${W.content.filter((item) => item.status === 'published').length} published`]);
@@ -155,14 +140,34 @@ function renderDashboard() {
   if (widgets.has('views')) cards.push(['Views synced', W.dashboard?.analytics?.views || 0, 'analytics snapshots']);
   if (widgets.has('knowledge')) cards.push(['Knowledge sources', (W.references || []).length + (W.sources || []).length, 'Hero Setup + Knowledge Base']);
   if (widgets.has('sources')) cards.push(['Source activity', (W.sources || []).filter((source) => source.enabled).length, 'collectors enabled']);
-
   const coverage = widgets.has('coverage') ? `<div class="dashboard-grid"><section class="panel"><div class="panel-head"><div><h2>Publisher queue</h2><p>Canonical records that need action next.</p></div><button class="text-link" data-go="publisher">Open Publisher →</button></div>${W.content.filter((item) => ['review', 'scheduled'].includes(item.status)).slice(0, 8).map((item) => `<div class="queue-row"><div class="queue-copy"><b>${we(item.title)}</b><small>${we(item.status)} · ${we(wd(item.scheduledAt))}</small></div><span class="format-tag">${we(formats[item.type] || item.type)}</span></div>`).join('') || '<div class="empty">Nothing waiting.</div>'}</section><section class="panel dark"><div class="panel-head"><div><h2>Theme coverage</h2><p>Coverage is shared taxonomy metadata; detailed analysis lives in Analytics.</p></div><button class="text-link" data-go="analytics">Open Analytics →</button></div>${W.topics.slice(0, 5).map((entry) => { const total = Number(entry.publishedCount || 0) + Number(entry.plannedCount || 0); const percent = total ? Math.round(Number(entry.publishedCount || 0) / total * 100) : 0; return `<div class="topic-health-row"><div><b>${we(entry.name)}</b><small>${entry.publishedCount || 0} published · ${entry.plannedCount || 0} planned</small></div><div class="progress"><i style="width:${percent}%"></i></div></div>`; }).join('')}</section></div>` : '';
-
   return `${head('Dashboard', 'A configurable overview assembled from the shared CMS IW modules.', '<button class="secondary-btn" data-go="settings">Configure dashboard</button>')}<div class="dashboard-widget-grid">${cards.map(([label, value, sub]) => `<div class="dashboard-widget"><span>${label}</span><b>${wn(value)}</b><small>${sub}</small></div>`).join('')}</div>${coverage}`;
 }
 
+function heroSourceGroup(source) {
+  const names = { official: 'Product', manual: 'Manual', community: 'Community', competitors: 'Competitors', market: 'Market' };
+  return names[source.sourceGroup] || source.sourceGroup || source.sourceClass || 'Source';
+}
 function renderHero() {
-  return `${head('Hero Setup', 'Workspace intelligence that teaches CMS IW what IntraWeb 17 is, how it speaks and what creation modules may use.', `<span class="pill accent">${(W.references || []).length + (W.sources || []).length} intelligence inputs</span>`)}<div class="hero-grid"><section class="hero-card"><span class="eyebrow">BRAND CORE</span><h2>Project knowledge</h2><p>Official facts, positioning, terminology, audience, allowed claims and prohibited wording.</p><div class="hero-list"><div><b>${we(W.project?.name || 'IntraWeb 17')}</b><small>${we(W.project?.description || 'Pilot workspace')}</small></div><div><b>Style memory</b><small>${W.styleProfile ? 'Profile built' : 'Learn from existing content, links and transcripts'}</small></div></div></section><section class="hero-card"><span class="eyebrow">OWNED CONTENT</span><h2>What we already published</h2><p>Existing references feed workspace context without creating another content database.</p><div class="hero-list">${(W.references || []).map((entry) => `<div><b>${we(entry.title)}</b><small>${we(entry.kind)} · ${we(entry.tags?.join(', ') || 'reference')}</small></div>`).join('') || '<div><b>No references yet</b><small>Add source material through the workspace intelligence flow.</small></div>'}</div></section><section class="hero-card"><span class="eyebrow">WATCHLIST</span><h2>Sources to learn from</h2><p>Own sites, external channels, news, competitors and future collectors.</p><div class="hero-list">${(W.sources || []).slice(0, 12).map((entry) => `<div><b>${we(entry.name)}</b><small>${we(entry.kind)} · priority ${Number(entry.priority || 0)}</small></div>`).join('')}</div></section><section class="hero-card"><span class="eyebrow">CONTENT DNA</span><h2>Creation defaults</h2><p>Shared structures and instructions consumed by text, image, audio, short and long-video creation modules.</p><div class="hero-list"><div><b>Short-form</b><small>Hook → proof → practical result → CTA</small></div><div><b>Long-form</b><small>Problem → workflow → explanation → caveats</small></div></div></section><section class="hero-card full"><span class="eyebrow">KNOWLEDGE</span><h2>Structured source intelligence</h2><div class="hero-drop">Knowledge Base owns reusable facts, ideas and provenance. Hero Setup owns workspace identity and style context. Both feed the same creation pipeline.</div></section></div>`;
+  const project = W.project || {};
+  const refs = W.references || [];
+  const sources = (W.sources || []).filter((source) => source.enabled !== false);
+  const officialCount = sources.filter((source) => source.sourceGroup === 'official').length;
+  const communityCount = sources.filter((source) => source.sourceGroup === 'community').length;
+  const productDescription = project.description || 'IntraWeb 17 is the product workspace whose facts, positioning, examples and source database drive every content format produced by CMS IW.';
+  const exampleRows = refs.length ? refs.slice(0, 4) : [{ title: 'Product voice', text: 'Show the developer the practical result first, explain what changed, and avoid empty marketing language.', kind: 'text' }];
+  const sourceRows = sources.map((source) => `<div class="hero-source-row"><div class="source-name">${we(source.name)}</div><div>${we(heroSourceGroup(source))}</div><div>${source.url ? `<a class="source-url" href="${we(source.url)}" target="_blank" rel="noreferrer">${we(source.url)}</a>` : '<span class="source-url">Manual / URL pending</span>'}</div><div><span class="hero-source-status">Active</span></div></div>`).join('');
+  return `<div class="hero-product">
+    <section class="hero-product-intro">
+      <article class="hero-product-main"><span class="eyebrow">PRODUCT INTELLIGENCE</span><h1>${we(project.name || 'IntraWeb 17')}</h1><p>${we(productDescription)}</p><div class="hero-product-tags"><span>${W.topics.length} structured topics</span><span>${sources.length} active sources</span><span>${refs.length} writing examples</span><span>${W.content.length} content records</span></div></article>
+      <aside class="hero-product-side"><div class="hero-section-head"><div><span class="eyebrow">CONTENT GOALS</span><h2>What the system should achieve</h2></div></div><div class="hero-goals"><div class="hero-goal"><b>Explain the product clearly</b><span>Turn product facts and documentation into practical developer-facing content.</span></div><div class="hero-goal"><b>Build recurring demand</b><span>Maintain a consistent stream of tutorials, releases, comparisons and product stories.</span></div><div class="hero-goal"><b>Reuse intelligence</b><span>Every post, short and long video starts from the same verified product context.</span></div></div></aside>
+    </section>
+    <section class="hero-product-grid">
+      <article class="hero-product-section"><div class="hero-section-head"><div><span class="eyebrow">PRODUCT PROFILE</span><h2>Positioning and message</h2><p>The stable context creation modules should inherit.</p></div></div><div class="hero-message-grid"><div class="hero-message"><b>Audience</b><span>Delphi and web developers evaluating, learning or adopting IntraWeb 17.</span></div><div class="hero-message"><b>Core promise</b><span>Practical web development with visual tooling, code ownership and a workflow close to normal development.</span></div><div class="hero-message"><b>Editorial rule</b><span>Lead with the problem and working result; support claims with product or documentation sources.</span></div></div></article>
+      <article class="hero-product-section"><div class="hero-section-head"><div><span class="eyebrow">WRITING EXAMPLES</span><h2>Voice examples</h2><p>Actual reference text used to teach future drafts.</p></div></div><div class="hero-example-list">${exampleRows.map((entry) => `<div class="hero-example"><b>${we(entry.title || 'Reference sample')}</b><blockquote>${we(entry.text || entry.summary || 'No sample text yet.')}</blockquote></div>`).join('')}</div></article>
+    </section>
+    <section class="hero-product-section"><div class="hero-section-head"><div><span class="eyebrow">SOURCE DATABASE</span><h2>Where product knowledge comes from</h2><p>Websites, documentation, Telegram, YouTube, team notes and external watchlists. ${officialCount} official · ${communityCount} community.</p></div><button class="secondary-btn" data-go="knowledge">Open Knowledge Base</button></div><div class="hero-source-table"><div class="hero-source-row header"><div>Source</div><div>Class</div><div>Location</div><div>Status</div></div>${sourceRows || '<div class="hero-source-row"><div class="source-name">No sources yet</div><div>—</div><div>Add them in Knowledge Base</div><div>—</div></div>'}</div></section>
+  </div>`;
 }
 
 function renderSettings() {
@@ -174,10 +179,7 @@ function bindOwnedView() {
   wqa('[data-go]', view).forEach((button) => { button.onclick = () => go(button.dataset.go); });
   const selectMap = { fPeriod: 'period', fChannel: 'channel', fTheme: 'theme', fFormat: 'format', fStatus: 'status' };
   for (const [id, key] of Object.entries(selectMap)) {
-    wq(`#${id}`, view)?.addEventListener('change', (event) => {
-      filters[key] = event.target.value;
-      renderOwnedRoute();
-    });
+    wq(`#${id}`, view)?.addEventListener('change', (event) => { filters[key] = event.target.value; renderOwnedRoute(); });
   }
   wq('#fQ', view)?.addEventListener('input', (event) => {
     filters.q = event.target.value;
