@@ -1,0 +1,312 @@
+/* CMS IW Design System — single visual source of truth.
+   Typography rule: no user-facing text below 16pt.
+   Only compact semantic chips (tags / pills / badges) may use 14pt. */
+
+:root {
+  /* Typography */
+  --ds-font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ds-type-body: 16pt;
+  --ds-type-compact: 14pt;
+  --ds-type-h3: 18pt;
+  --ds-type-h2: 22pt;
+  --ds-type-h1: 34pt;
+  --ds-type-display: 42pt;
+  --ds-line-body: 1.48;
+  --ds-weight-regular: 500;
+  --ds-weight-medium: 650;
+  --ds-weight-bold: 800;
+  --ds-weight-black: 900;
+
+  /* Color */
+  --ds-color-ink: #151717;
+  --ds-color-muted: #676e69;
+  --ds-color-canvas: #e9ece8;
+  --ds-color-surface: #f8faf7;
+  --ds-color-surface-strong: #ffffff;
+  --ds-color-graphite: #202321;
+  --ds-color-line: #d9ddd8;
+  --ds-color-line-strong: #c8cdc7;
+  --ds-color-accent: #b7ff3c;
+  --ds-color-accent-soft: #e6ffc1;
+  --ds-color-danger: #c95c54;
+
+  /* Spacing */
+  --ds-space-1: 6px;
+  --ds-space-2: 10px;
+  --ds-space-3: 14px;
+  --ds-space-4: 18px;
+  --ds-space-5: 24px;
+  --ds-space-6: 32px;
+  --ds-space-7: 42px;
+
+  /* Shape */
+  --ds-radius-sm: 10px;
+  --ds-radius-md: 14px;
+  --ds-radius-lg: 18px;
+  --ds-radius-xl: 26px;
+  --ds-radius-pill: 999px;
+  --ds-shadow-card: 0 18px 50px rgba(23, 27, 24, .08);
+
+  /* Controls */
+  --ds-control-height: 54px;
+  --ds-control-padding-x: 16px;
+
+  /* Provider identity — local accents only */
+  --ds-provider-youtube: #ff0033;
+  --ds-provider-linkedin: #0a66c2;
+  --ds-provider-tiktok: #111111;
+  --ds-provider-instagram: #c13584;
+  --ds-provider-facebook: #1877f2;
+  --ds-provider-telegram: #229ed9;
+  --ds-provider-vk: #0077ff;
+  --ds-provider-x: #111111;
+}
+
+html, body {
+  font-family: var(--ds-font-family);
+  font-size: var(--ds-type-body);
+  line-height: var(--ds-line-body);
+}
+
+/* Hard accessibility/product guard.
+   This intentionally overrides old component-local font sizes, including inline styles.
+   Typography belongs to this file, not feature CSS. */
+#app *:not(svg):not(path) {
+  font-size: max(var(--ds-type-body), 1em) !important;
+}
+
+/* Headings and high-value numeric display */
+#app h1,
+#app .page-head h1 {
+  font-size: var(--ds-type-h1) !important;
+  line-height: 1.05 !important;
+}
+#app h2,
+#app .panel-head h2,
+#app .hero-card h2 {
+  font-size: var(--ds-type-h2) !important;
+  line-height: 1.15 !important;
+}
+#app h3,
+#app .publication-title,
+#app .publisher-content h3,
+#app .knowledge-row h3,
+#app .settings-card-v3 h3 {
+  font-size: var(--ds-type-h3) !important;
+  line-height: 1.2 !important;
+}
+#app .metric-value,
+#app .v3-kpi > b,
+#app .dashboard-widget > b,
+#app .big-counts b {
+  font-size: var(--ds-type-display) !important;
+  line-height: 1 !important;
+}
+#app .workspace-name {
+  font-size: 20pt !important;
+}
+
+/* The only permitted compact typography. */
+#app :is(
+  .pill,
+  .format-tag,
+  .status-badge,
+  .channel-chip,
+  .provider-badge,
+  .meta-chip,
+  .source-class,
+  .tag,
+  .provider,
+  .status,
+  .count
+),
+#app :is(
+  .pill,
+  .format-tag,
+  .status-badge,
+  .channel-chip,
+  .provider-badge,
+  .meta-chip,
+  .source-class,
+  .tag,
+  .provider,
+  .status,
+  .count
+) * {
+  font-size: var(--ds-type-compact) !important;
+  line-height: 1.15 !important;
+}
+
+/* Controls */
+#app :is(button, input, select, textarea) {
+  font-family: var(--ds-font-family) !important;
+  font-size: var(--ds-type-body) !important;
+}
+#app :is(input, select, textarea, .primary-btn, .secondary-btn, .dark-btn, .icon-action) {
+  min-height: var(--ds-control-height) !important;
+}
+#app :is(.primary-btn, .secondary-btn, .dark-btn) {
+  padding-inline: var(--ds-control-padding-x) !important;
+  border-radius: var(--ds-radius-md) !important;
+}
+
+/* Navigation and shell must have enough room for 16pt labels. */
+.app-shell {
+  grid-template-columns: 78px 360px minmax(0, 1fr) !important;
+}
+.rail {
+  padding-inline: 12px !important;
+}
+.rail-btn {
+  width: 54px !important;
+  height: 54px !important;
+}
+.sidebar {
+  padding: 26px 22px !important;
+}
+.side-link {
+  min-height: 54px !important;
+  padding: 12px 14px !important;
+  gap: 12px !important;
+}
+.hero-setup-link,
+.profile-card {
+  min-height: 72px !important;
+  padding: 13px !important;
+}
+.topbar {
+  min-height: 88px !important;
+  height: auto !important;
+}
+.view {
+  padding-top: 34px !important;
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+.main {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Dense data components scale with the typography system instead of shrinking text. */
+.v3-filterbar,
+.toolbar {
+  gap: 12px !important;
+}
+.v3-filterbar label {
+  min-width: 190px !important;
+}
+.v3-filterbar input,
+.v3-filterbar select,
+.toolbar select,
+.search-box {
+  min-height: var(--ds-control-height) !important;
+  height: auto !important;
+}
+.v3-kpi,
+.dashboard-widget,
+.metric-card,
+.panel,
+.publication-card,
+.publisher-row,
+.knowledge-items,
+.source-intel,
+.hero-card,
+.settings-card-v3,
+.connection-card,
+.topic-card,
+.reference-card {
+  border-radius: var(--ds-radius-lg) !important;
+}
+.publication-input,
+.publication-output,
+.publisher-row,
+.knowledge-row,
+.hero-card,
+.settings-card-v3 {
+  padding: var(--ds-space-5) !important;
+}
+.publication-copy,
+.publisher-content p,
+.knowledge-row p,
+.hero-card p,
+.settings-card-v3 p,
+.panel-head p,
+.page-head p,
+small {
+  line-height: var(--ds-line-body) !important;
+}
+
+/* Tables/lists cannot solve density by shrinking text. They scroll/reflow instead. */
+.content-table,
+.analytics-v2-table,
+.calendar-v3-grid,
+.calendar-week,
+.publisher-tabs {
+  overflow-x: auto !important;
+}
+.table-head,
+.content-row {
+  min-width: 1180px !important;
+}
+.calendar-v3-grid {
+  grid-template-columns: repeat(7, minmax(230px, 1fr)) !important;
+}
+.calendar-v3-day {
+  min-width: 230px !important;
+  min-height: 190px !important;
+  padding: 12px !important;
+}
+.calendar-card {
+  padding: 10px !important;
+}
+.publisher-row {
+  grid-template-columns: 190px minmax(0, 1fr) auto !important;
+}
+
+/* Provider brand identity is confined to provider-aware components. */
+.provider-badge.youtube,
+.calendar-card.youtube { --provider-color: var(--ds-provider-youtube); }
+.provider-badge.linkedin,
+.calendar-card.linkedin { --provider-color: var(--ds-provider-linkedin); }
+.provider-badge.tiktok,
+.calendar-card.tiktok { --provider-color: var(--ds-provider-tiktok); }
+.provider-badge.instagram,
+.calendar-card.instagram { --provider-color: var(--ds-provider-instagram); }
+.provider-badge.facebook,
+.calendar-card.facebook { --provider-color: var(--ds-provider-facebook); }
+.provider-badge.telegram,
+.calendar-card.telegram { --provider-color: var(--ds-provider-telegram); }
+.provider-badge.vk,
+.calendar-card.vk { --provider-color: var(--ds-provider-vk); }
+.provider-badge.x,
+.calendar-card.x { --provider-color: var(--ds-provider-x); }
+
+/* Responsive behavior: keep typography; reduce columns, never font size. */
+@media (max-width: 1180px) {
+  .app-shell { grid-template-columns: 72px 320px minmax(0,1fr) !important; }
+  .v3-kpis,
+  .metric-grid,
+  .dashboard-widget-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  .content-intel-grid,
+  .knowledge-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 820px) {
+  .app-shell { grid-template-columns: 68px minmax(0,1fr) !important; }
+  .sidebar { display: none !important; }
+  .topbar { padding-inline: 18px !important; }
+  .view { padding: 24px 18px 48px !important; }
+  .v3-kpis,
+  .metric-grid,
+  .dashboard-widget-grid,
+  .hero-grid,
+  .settings-grid-v3 { grid-template-columns: 1fr !important; }
+  .publication-main,
+  .publisher-row { grid-template-columns: 1fr !important; }
+  .publication-output { border-left: 0 !important; border-top: 1px solid var(--ds-color-line) !important; }
+  .v3-filterbar { display: grid !important; grid-template-columns: 1fr !important; }
+  .v3-filterbar label,
+  .v3-filterbar label.wide { min-width: 0 !important; width: 100% !important; }
+}

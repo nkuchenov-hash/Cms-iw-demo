@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#101111" />
+  <title>CMS IW — IntraWeb 17</title>
+  <link rel="stylesheet" href="./app.css" />
+  <link rel="stylesheet" href="./workspace.css" />
+  <link rel="stylesheet" href="./publisher.css" />
+  <link rel="stylesheet" href="./publisher-workbench.css" />
+  <link rel="stylesheet" href="./analytics.css" />
+  <link rel="stylesheet" href="./analytics-dashboard.css" />
+  <link rel="stylesheet" href="./calendar.css" />
+  <link rel="stylesheet" href="./knowledge-base.css" />
+  <link rel="stylesheet" href="./design-system.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <aside class="rail" aria-label="Primary">
+      <div class="rail-mark">IW</div>
+      <nav id="railNav" class="rail-nav"></nav>
+      <div class="rail-spacer"></div>
+      <button class="rail-btn" data-shell-route="settings" title="Settings" aria-label="Settings">⚙</button>
+    </aside>
+
+    <aside class="sidebar">
+      <div class="workspace-head">
+        <div>
+          <div class="eyebrow">CONTENT SYSTEM</div>
+          <div class="workspace-name">IntraWeb 17</div>
+        </div>
+        <span class="live-dot" title="Workspace"></span>
+      </div>
+      <button id="heroSetupLink" class="hero-setup-link" type="button"><span class="hero-setup-icon">✦</span><span><b>Hero Setup</b><small>Workspace intelligence</small></span><i>›</i></button>
+      <div class="sidebar-section-title">Workspace</div>
+      <nav id="sideNav" class="side-nav"></nav>
+      <div id="topicMini" hidden></div>
+      <div class="sidebar-bottom">
+        <button class="profile-card" id="profileButton" type="button">
+          <span class="profile-avatar">N</span>
+          <span class="profile-copy"><b>Profile</b><small>Workspace administrator</small></span>
+          <span class="profile-chevron">›</span>
+        </button>
+        <span class="status-orb" hidden></span><span id="publishStatusText" hidden></span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumbs"><span>CMS IW</span><span>/</span><b id="pageCrumb">Dashboard</b></div>
+        <div class="top-actions">
+          <button id="quickSearch" class="icon-action" title="Search">⌕</button>
+          <button id="newContentBtn" class="primary-btn"><span>＋</span> New content</button>
+        </div>
+      </header>
+      <section id="view" class="view"></section>
+    </main>
+  </div>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <dialog id="composer" class="composer-dialog">
+    <form id="composerForm" method="dialog" class="composer-card">
+      <div class="composer-head">
+        <div>
+          <div class="eyebrow">CREATE</div>
+          <h2>New content</h2>
+        </div>
+        <button type="button" class="close-btn" id="closeComposer" aria-label="Close">×</button>
+      </div>
+      <div class="composer-grid">
+        <label class="field"><span>Format</span><select id="cType" name="type"></select></label>
+        <label class="field"><span>Theme</span><select id="cTopic" name="topicId"></select></label>
+        <label class="field field-span"><span>Title</span><input id="cTitle" name="title" maxlength="180" required placeholder="What is this content about?" /></label>
+        <label class="field field-span"><span>Post / script / description</span><textarea id="cBody" name="body" rows="8" placeholder="Write the canonical version here. Channel-specific variants come later."></textarea></label>
+        <label class="field"><span>Media URL</span><input id="cMediaUrl" type="url" placeholder="https://…" /></label>
+        <label class="field"><span>Server file path</span><input id="cMediaPath" placeholder="/srv/media/video.mp4" /></label>
+        <label class="field"><span>Schedule</span><input id="cSchedule" type="datetime-local" /></label>
+        <div class="field"><span>Destinations</span><div id="cChannels" class="check-grid"></div></div>
+      </div>
+      <div class="composer-foot">
+        <div class="composer-note">One canonical record. Destination publications are projections of this record.</div>
+        <div class="composer-actions">
+          <button type="button" class="secondary-btn" id="saveDraftBtn">Save draft</button>
+          <button type="button" class="primary-btn" id="saveScheduleBtn">Save / schedule</button>
+          <button type="button" class="dark-btn" id="publishNowBtn">Publish now</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./pages-api.js"></script>
+  <script type="module" src="./app.js"></script>
+  <script type="module" src="./workspace.js"></script>
+  <script type="module" src="./calendar.js"></script>
+  <script type="module" src="./publisher.js"></script>
+  <script type="module" src="./analytics.js"></script>
+  <script type="module" src="./knowledge-base.js"></script>
+</body>
+</html>
