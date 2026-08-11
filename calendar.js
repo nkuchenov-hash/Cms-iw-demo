@@ -11,6 +11,7 @@ async function c6Load(){try{const r=await fetch('/api/state',{cache:'no-store'})
 function c6Channel(id){return C6?.channels?.find(x=>x.id===id)}
 function c6Provider(id){return c6Channel(id)?.provider||'unknown'}
 function c6Badge(p){const d=c6Providers[p]||[p.slice(0,2).toUpperCase(),p];return `<span class="provider-badge ${c6esc(p)}">${c6esc(d[0])} ${c6esc(d[1])}</span>`}
+function c6ProviderLabel(p){const d=c6Providers[p]||[p.slice(0,2).toUpperCase(),p];return `<span class="calendar-v6-provider-mark">${c6esc(d[0])}</span><span>${c6esc(d[1])}</span>`}
 function c6Time(v){return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(v))}
 function c6DateKey(v){const d=new Date(v);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function c6Monday(v){const d=new Date(v),offset=(d.getDay()+6)%7;d.setDate(d.getDate()-offset);d.setHours(0,0,0,0);return d}
@@ -35,13 +36,13 @@ function c6ProviderFilters(){
   const configured=new Set((C6?.channels||[]).map(x=>x.provider));
   const available=c6ProviderOrder.filter(p=>configured.has(p)||p==='vk'||p==='x');
   const allActive=!c6ProviderSet.size;
-  return `<div class="calendar-v6-provider-filter"><button class="all ${allActive?'active':''}" data-c6-provider="all">All</button>${available.map(p=>`<button class="${c6ProviderSet.has(p)?'active':''}" data-c6-provider="${c6esc(p)}">${c6Badge(p)}</button>`).join('')}</div>`;
+  return `<div class="calendar-v6-provider-filter" aria-label="Channels"><button class="all ${allActive?'active':''}" data-c6-provider="all">All channels</button>${available.map(p=>`<button class="${c6ProviderSet.has(p)?'active':''}" data-c6-provider="${c6esc(p)}">${c6ProviderLabel(p)}</button>`).join('')}</div>`;
 }
 function c6Month(entries){
   const first=new Date(c6Cursor.getFullYear(),c6Cursor.getMonth(),1),start=c6Monday(first),days=[];
   for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);days.push(d)}
   const today=c6DateKey(new Date());
-  return `<div class="calendar-v6-frame"><div class="calendar-v6-weekdays">${c6Weekdays.map(x=>`<div class="calendar-v6-weekday">${x}</div>`).join('')}</div><div class="calendar-v6-month">${days.map(day=>{const dayRows=entries.filter(x=>c6DateKey(x.when)===c6DateKey(day));const cls=[day.getMonth()!==c6Cursor.getMonth()?'other-month':'',c6DateKey(day)===today?'today':''].filter(Boolean).join(' ');return `<section class="calendar-v6-day ${cls}"><div class="calendar-v6-day-head"><span class="calendar-v6-day-number">${day.getDate()}</span>${dayRows.length>1?`<span class="calendar-v6-day-count">${dayRows.length} posts</span>`:''}</div><div class="calendar-v6-stack">${dayRows.map(c6Card).join('')}</div></section>`}).join('')}</div></div>`;
+  return `<div class="calendar-v6-frame"><div class="calendar-v6-weekdays">${c6Weekdays.map(x=>`<div class="calendar-v6-weekday">${x}</div>`).join('')}</div><div class="calendar-v6-month">${days.map(day=>{const dayRows=entries.filter(x=>c6DateKey(x.when)===c6DateKey(day));const cls=[day.getMonth()!==c6Cursor.getMonth()?'other-month':'',c6DateKey(day)===today?'today':''].filter(Boolean).join(' ');return `<section class="calendar-v6-day ${cls}"><div class="calendar-v6-day-head"><span class="calendar-v6-day-number">${day.getDate()}</span>${dayRows.length>1?`<span class="calendar-v6-day-count">${dayRows.length}</span>`:''}</div><div class="calendar-v6-stack">${dayRows.map(c6Card).join('')}</div></section>`}).join('')}</div></div>`;
 }
 function c6Week(entries){
   const start=c6Monday(c6Cursor),days=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);days.push(d)}
@@ -56,8 +57,8 @@ function c6Render(){
   if(!C6||c6Route()!=='calendar')return;
   const view=c6('#view');if(!view)return;
   const entries=c6Entries();
-  view.innerHTML=`<div class="page-head"><div><h1>Content calendar</h1><p>Published and upcoming posts by destination. Provider filters can be combined; All is selected by default.</p></div><div class="page-meta"><span class="pill accent">${entries.length} visible posts</span></div></div><div class="calendar-v6-toolbar"><div class="calendar-v6-left"><div class="calendar-v6-nav"><button data-c6-move="-1" aria-label="Previous period">‹</button><button class="calendar-v6-period" disabled>${c6esc(c6PeriodLabel())}</button><button data-c6-move="1" aria-label="Next period">›</button><button data-c6-today>Today</button></div></div><div class="calendar-v6-right"><div class="calendar-v6-view">${['month','week','day'].map(v=>`<button data-c6-view="${v}" class="${c6View===v?'active':''}">${v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div></div></div>${c6ProviderFilters()}${c6View==='month'?c6Month(entries):c6View==='week'?c6Week(entries):c6Day(entries)}`;
-  view.dataset.v4='calendar';view.dataset.v6='calendar';
+  view.innerHTML=`<div class="calendar-v6-commandbar"><div class="calendar-v6-title"><h1>Calendar</h1><span class="pill accent">${entries.length} posts</span></div><div class="calendar-v6-nav"><button data-c6-move="-1" aria-label="Previous period">‹</button><span class="calendar-v6-period">${c6esc(c6PeriodLabel())}</span><button data-c6-move="1" aria-label="Next period">›</button><button data-c6-today>Today</button></div><div class="calendar-v6-view">${['month','week','day'].map(v=>`<button data-c6-view="${v}" class="${c6View===v?'active':''}">${v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div>${c6ProviderFilters()}</div>${c6View==='month'?c6Month(entries):c6View==='week'?c6Week(entries):c6Day(entries)}`;
+  view.dataset.routeOwner='calendar';view.dataset.route='calendar';
   c6Bind();
 }
 function c6Bind(){
