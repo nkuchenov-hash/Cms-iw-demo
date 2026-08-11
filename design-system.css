@@ -47,6 +47,7 @@
 
   --ds-control-height: 42px;
   --ds-control-padding-x: 13px;
+  --ds-workspace-max: 1680px;
 
   --ds-provider-youtube: #ff0033;
   --ds-provider-linkedin: #0a66c2;
@@ -142,7 +143,7 @@ html, body {
 .sidebar-bottom { padding-top: 12px !important; }
 .topbar { min-height: 56px !important; height: 56px !important; padding-inline: 20px !important; }
 .crumbs b { font-weight: 500 !important; }
-.view { padding: 10px 20px 44px !important; max-width: none !important; width: 100% !important; margin: 0 !important; }
+.view { padding: 10px 20px 44px !important; max-width: var(--ds-workspace-max) !important; width: 100% !important; margin: 0 auto !important; }
 .main { width: 100% !important; min-width: 0 !important; }
 
 /* Route identity already lives in the persistent breadcrumb/navigation.
@@ -243,6 +244,15 @@ small { line-height: var(--ds-line-body) !important; }
 .provider-badge.telegram,.calendar-card.telegram { --provider-color: var(--ds-provider-telegram); }
 .provider-badge.vk,.calendar-card.vk { --provider-color: var(--ds-provider-vk); }
 .provider-badge.x,.calendar-card.x { --provider-color: var(--ds-provider-x); }
+
+/* Ultrawide screens get breathing room around the working canvas instead of stretched cards.
+   The persistent navigation can also afford a little more width there. */
+@media (min-width: 2100px) {
+  .app-shell { grid-template-columns: 58px 252px minmax(0, 1fr) !important; }
+  .sidebar { padding-inline: 15px !important; }
+  .view { padding-inline: 28px !important; }
+  .topbar { padding-inline: 28px !important; }
+}
 
 @media (max-width: 1180px) {
   .app-shell { grid-template-columns: 52px 204px minmax(0,1fr) !important; }
